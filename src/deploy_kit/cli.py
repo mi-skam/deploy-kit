@@ -3,13 +3,13 @@
 import click
 import os
 import sys
-from . import config, docker, sops
+from . import __version__, config, docker, sops
 from .backends import compose, portainer
 from .utils import logger
 
 
 @click.group()
-@click.version_option(version="0.1.0", prog_name="deploy-kit")
+@click.version_option(version=__version__, prog_name="deploy-kit")
 def main():
     """Deploy-kit: Docker deployment toolkit"""
     pass
