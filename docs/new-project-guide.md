@@ -2,32 +2,57 @@
 
 This guide walks you through creating a new Python project from scratch with deploy-kit integration built-in.
 
-## What's Different from Adding to Existing Projects?
+## Table of Contents
 
-This guide covers the **complete setup** including:
-- Creating project structure from scratch
-- Setting up `pyproject.toml`
-- Creating a basic `Dockerfile`
-- Initializing git repository
-
-If you already have a Python project with `pyproject.toml` and `Dockerfile`, see [Adding Deploy-Kit to an Existing Project](existing-project-guide.md) instead.
+- [Creating a New Project with Deploy-Kit](#creating-a-new-project-with-deploy-kit)
+  - [Table of Contents](#table-of-contents)
+  - [Prerequisites](#prerequisites)
+  - [Step 1: Create Project Directory](#step-1-create-project-directory)
+  - [Step 2: Initialize Python Project with uv](#step-2-initialize-python-project-with-uv)
+  - [Step 3: Configure pyproject.toml](#step-3-configure-pyprojecttoml)
+  - [Step 4: Create Your Application](#step-4-create-your-application)
+  - [Step 5: Create Dockerfile](#step-5-create-dockerfile)
+  - [Step 6: Add Deploy-Kit to Your Project](#step-6-add-deploy-kit-to-your-project)
+    - [Option A: Global Install (Recommended)](#option-a-global-install-recommended)
+    - [Option B: Git Submodule (For Teams)](#option-b-git-submodule-for-teams)
+  - [Step 7: Create Justfile](#step-7-create-justfile)
+  - [Step 8: Install Dependencies for Local Development](#step-8-install-dependencies-for-local-development)
+  - [Step 9: Configure Deploy-Kit](#step-9-configure-deploy-kit)
+    - [9.1 Create deploy-kit.toml](#91-create-deploy-kittoml)
+    - [9.2 Create Environment Files](#92-create-environment-files)
+    - [9.3 Set Up SOPS for Production Secrets](#93-set-up-sops-for-production-secrets)
+  - [Step 10: Update .gitignore](#step-10-update-gitignore)
+  - [Step 11: Add Docker Compose Template (Required for Deployment)](#step-11-add-docker-compose-template-required-for-deployment)
+  - [Step 12: Test Locally](#step-12-test-locally)
+  - [Step 13: Initial Git Commit](#step-13-initial-git-commit)
+  - [Step 14: Deploy Your Application](#step-14-deploy-your-application)
+    - [Docker Compose (SSH) Deployment](#docker-compose-ssh-deployment)
+    - [Portainer Deployment](#portainer-deployment)
+  - [Step 15: Verify Deployment](#step-15-verify-deployment)
+  - [Project Structure Summary](#project-structure-summary)
+  - [Development Workflow](#development-workflow)
+  - [Team Collaboration with SOPS](#team-collaboration-with-sops)
+    - [Adding Team Members](#adding-team-members)
+  - [Next Steps](#next-steps)
+  - [Troubleshooting](#troubleshooting)
+    - [Common Issues](#common-issues)
 
 ## Prerequisites
 
 Ensure you have installed:
 
-- [x] Python 3.11+ ([download](https://www.python.org/downloads/))
-- [x] Docker ([download](https://www.docker.com/get-started))
-- [x] `uv` package manager ([installation](https://docs.astral.sh/uv/getting-started/installation/))
-- [x] Git ([download](https://git-scm.com/downloads))
+- Python 3.11+ ([download](https://www.python.org/downloads/))
+- Docker ([download](https://www.docker.com/get-started))
+- `uv` package manager ([installation](https://docs.astral.sh/uv/getting-started/installation/))
+- Git ([download](https://git-scm.com/downloads))
 
 **For Docker Compose deployments:**
-- [x] SSH access to target server
-- [x] Docker and docker-compose on remote server
+- SSH access to target server
+- Docker and docker-compose on remote server
 
 **For Portainer deployments:**
-- [x] Portainer instance URL
-- [x] Portainer API key
+- Portainer instance URL
+- Portainer API key
 
 ## Step 1: Create Project Directory
 
@@ -171,7 +196,6 @@ git submodule add https://github.com/mi-skam/deploy-kit.git deploy-kit
 git submodule update --init --recursive
 ```
 
-See [existing project guide](existing-project-guide.md#step-1-add-deploy-kit-to-your-project) for detailed comparison.
 
 ## Step 7: Create Justfile
 
@@ -204,7 +228,7 @@ just dev                    # Your custom recipe
 just up-compose user@host   # Deploy-kit recipe
 ```
 
-## Step 7.5: Install Dependencies for Local Development
+## Step 8: Install Dependencies for Local Development
 
 Before you can run the development server, install your project dependencies:
 
@@ -233,9 +257,9 @@ Now you can run the development server:
 just dev  # Starts uvicorn with hot-reload
 ```
 
-## Step 8: Configure Deploy-Kit
+## Step 9: Configure Deploy-Kit
 
-### 8.1 Create deploy-kit.toml
+### 9.1 Create deploy-kit.toml
 
 ```bash
 cp deploy-kit/templates/config/deploy-kit.toml.example deploy-kit.toml
@@ -261,7 +285,7 @@ keep_tarballs = 3
 
 **Cross-platform builds:** If you're building on M1/M2 Mac (ARM) but deploying to x86_64 servers, uncomment and set `architecture = "linux/amd64"` to avoid platform mismatch warnings.
 
-### 8.2 Create Environment Files
+### 9.2 Create Environment Files
 
 Create `.env` for local development:
 
@@ -280,7 +304,7 @@ API_KEY=your-api-key
 EOF
 ```
 
-### 8.3 Set Up SOPS for Production Secrets
+### 9.3 Set Up SOPS for Production Secrets
 
 Install SOPS and age:
 
@@ -320,7 +344,7 @@ just env-encrypt
 
 This creates `.env.sops` which is safe to commit.
 
-## Step 9: Update .gitignore
+## Step 10: Update .gitignore
 
 Ensure proper files are ignored:
 
@@ -352,7 +376,7 @@ htmlcov/
 EOF
 ```
 
-## Step 10: Add Docker Compose Template (Required for Deployment)
+## Step 11: Add Docker Compose Template (Required for Deployment)
 
 For deployment to work, you need the docker-compose template file:
 
@@ -378,9 +402,7 @@ cp deploy-kit/templates/docker/docker-compose.prod.yml.template docker-compose.p
 curl -O https://raw.githubusercontent.com/mi-skam/deploy-kit/main/templates/docker/docker-compose.prod.yml.template
 ```
 
-See [existing project guide](existing-project-guide.md#step-5-customize-docker-compose-template-optional) for customization details.
-
-## Step 11: Test Locally
+## Step 12: Test Locally
 
 Before deploying, test your Docker setup locally:
 
@@ -396,7 +418,7 @@ curl http://localhost:8000/
 curl http://localhost:8000/health
 ```
 
-## Step 12: Initial Git Commit
+## Step 13: Initial Git Commit
 
 Commit your project structure:
 
@@ -420,7 +442,7 @@ git commit -m "feat: initial project setup with deploy-kit"
 - `dist/` (tarballs)
 - `.venv/` (virtual environment)
 
-## Step 13: Deploy Your Application
+## Step 14: Deploy Your Application
 
 ### Docker Compose (SSH) Deployment
 
@@ -457,9 +479,7 @@ deploy-kit --portainer https://portainer.example.com
 just up-portainer https://portainer.example.com
 ```
 
-See [existing project guide](existing-project-guide.md#step-6-deploy-your-application) for detailed deployment workflow explanation.
-
-## Step 14: Verify Deployment
+## Step 15: Verify Deployment
 
 Check your application is running:
 
@@ -609,46 +629,3 @@ If building on ARM Mac but deploying to x86_64 server, add to `deploy-kit.toml`:
 ```toml
 architecture = "linux/amd64"
 ```
-
-See [existing project guide troubleshooting section](existing-project-guide.md#troubleshooting) for more issues and solutions.
-
-## Example Projects
-
-Check out these example projects using deploy-kit:
-
-```bash
-# FastAPI example
-git clone https://github.com/your-org/deploy-kit-example-fastapi
-
-# Django example
-git clone https://github.com/your-org/deploy-kit-example-django
-
-# Flask example
-git clone https://github.com/your-org/deploy-kit-example-flask
-```
-
-## Summary Checklist
-
-- [ ] Created project directory and initialized git with main branch
-- [ ] Initialized Python project with `uv init`
-- [ ] Configured `pyproject.toml` with:
-  - [ ] `readme = "README.md"`
-  - [ ] `requires-python = ">=3.13"`
-  - [ ] Dependencies (fastapi, uvicorn, etc.)
-  - [ ] `[tool.hatch.build.targets.wheel]` with packages
-- [ ] Created application code in `src/my_app/`
-- [ ] Created production `Dockerfile` with:
-  - [ ] `COPY pyproject.toml README.md ./`
-  - [ ] `ENV PYTHONPATH=/app/src`
-- [ ] Installed deploy-kit globally (`uv tool install`)
-- [ ] Created `justfile` with deploy-kit integration
-- [ ] Installed local dependencies (`uv pip install -e .`)
-- [ ] Configured `deploy-kit.toml` (ssh_target or portainer_url)
-- [ ] Added docker-compose template (required for deployment)
-- [ ] Set up SOPS encryption for secrets (optional)
-- [ ] Created `.gitignore`
-- [ ] Tested Docker build locally
-- [ ] Made initial git commit
-- [ ] Deployed successfully
-
-Your new project is ready for development and deployment! 🚀
