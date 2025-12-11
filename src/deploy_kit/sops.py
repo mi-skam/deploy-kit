@@ -29,7 +29,7 @@ def detect_env_file() -> Path | None:
         logger.info("Using .env file")
         return env_plain
     else:
-        logger.warning(
+        logger.warn(
             "No .env or .env.sops found - deploying without environment variables"
         )
         return None

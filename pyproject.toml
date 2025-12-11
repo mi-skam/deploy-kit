@@ -1,6 +1,6 @@
 [project]
 name = "deploy-kit"
-version = "0.2.2"
+version = "0.2.3"
 description = "Reusable Docker deployment toolkit with Portainer API and docker-compose support"
 readme = "README.md"
 requires-python = ">=3.11"
