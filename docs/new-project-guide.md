@@ -198,6 +198,11 @@ Edit to customize (all optional):
 
 ```toml
 [deploy]
+# Deployment targets (choose based on your backend)
+ssh_target = "user@host.example.com"           # For Compose backend
+portainer_url = "https://portainer.example.com" # For Portainer backend
+
+# Build configuration
 port = 8000
 healthcheck_path = "/health"
 keep_tarballs = 3
@@ -350,28 +355,36 @@ git commit -m "feat: initial project setup with deploy-kit"
 ### Docker Compose (SSH) Deployment
 
 ```bash
-# Set target
+# Option 1: Using deploy-kit.toml (if ssh_target is set)
+deploy-kit --compose
+just up-compose
+
+# Option 2: Using environment variable
 export DEPLOY_TARGET=user@host.example.com
+deploy-kit --compose
 
-# Deploy
-just up-compose user@host.example.com
-
-# Or direct command
+# Option 3: Via CLI argument
 deploy-kit --compose user@host.example.com
+just up-compose user@host.example.com
 ```
 
 ### Portainer Deployment
 
 ```bash
-# Set credentials
+# Option 1: Using deploy-kit.toml + .env.sops (if portainer_url is set)
+# PORTAINER_API_KEY should be in .env.sops
+deploy-kit --portainer
+just up-portainer
+
+# Option 2: Using environment variables
 export PORTAINER_URL=https://portainer.example.com
 export PORTAINER_API_KEY=ptr_xxx...
+deploy-kit --portainer
 
-# Deploy
-just up-portainer https://portainer.example.com
-
-# Or direct command
+# Option 3: Via CLI argument + env var
+export PORTAINER_API_KEY=ptr_xxx...
 deploy-kit --portainer https://portainer.example.com
+just up-portainer https://portainer.example.com
 ```
 
 See [existing project guide](existing-project-guide.md#step-6-deploy-your-application) for detailed deployment workflow explanation.

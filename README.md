@@ -69,6 +69,10 @@ deploy-kit -c user@host.example.com
 # Via environment variable
 export DEPLOY_TARGET=user@host.example.com
 deploy-kit --compose
+
+# Via deploy-kit.toml
+# Add to deploy-kit.toml: ssh_target = "user@host.example.com"
+deploy-kit --compose
 ```
 
 ### Portainer deployment (API)
@@ -83,6 +87,11 @@ deploy-kit -p https://portainer.example.com
 
 # Via environment variables
 export PORTAINER_URL=https://portainer.example.com
+export PORTAINER_API_KEY=ptr_xxx...
+deploy-kit --portainer
+
+# Via deploy-kit.toml (API key still needs env var)
+# Add to deploy-kit.toml: portainer_url = "https://portainer.example.com"
 export PORTAINER_API_KEY=ptr_xxx...
 deploy-kit --portainer
 ```
@@ -129,6 +138,8 @@ port = 8001
 healthcheck_path = "/health"
 keep_tarballs = 5
 architecture = "linux/amd64"
+ssh_target = "user@host.example.com"
+portainer_url = "https://portainer.example.com"
 ```
 
 **Environment variable overrides:**
@@ -141,14 +152,27 @@ Configuration:
 
 Deployment:
 - `DEPLOY_TARGET` - SSH target for Compose backend (e.g., `user@host.example.com`)
+  - Can also be set via `ssh_target` in deploy-kit.toml
 - `PORTAINER_URL` - Portainer API URL (e.g., `https://portainer.example.com`)
+  - Can also be set via `portainer_url` in deploy-kit.toml
 - `PORTAINER_API_KEY` - Portainer API key (required for Portainer backend)
+  - Security: Use environment variable only, never commit to config files
+  - Recommended: Store in `.env.sops` (encrypted) - deploy-kit decrypts automatically
 
 **Configuration precedence (highest to lowest):**
-1. Environment variables
-2. `deploy-kit.toml` overrides
-3. `pyproject.toml` auto-detection
-4. Built-in defaults
+1. CLI arguments (for deployment targets only)
+2. Environment variables
+3. `deploy-kit.toml` overrides
+4. `pyproject.toml` auto-detection
+5. Built-in defaults
+
+**Example:**
+```bash
+# All three methods can be combined - CLI arg takes precedence
+export PORTAINER_URL=https://staging.portainer.io  # Lower precedence
+# deploy-kit.toml has: portainer_url = "https://dev.portainer.io"  # Even lower
+deploy-kit -p https://prod.portainer.io  # Highest precedence - this is used
+```
 
 ## Multi-Architecture Builds
 

@@ -106,6 +106,11 @@ Edit `deploy-kit.toml` to customize:
 
 ```toml
 [deploy]
+# Deployment targets
+ssh_target = "user@host.example.com"           # SSH target for Compose
+portainer_url = "https://portainer.example.com" # Portainer URL for API
+
+# Build configuration
 port = 8001                          # Override default port (8000)
 healthcheck_path = "/api/health"     # Custom health check endpoint
 keep_tarballs = 5                    # Keep more old images (default: 3)
@@ -260,23 +265,27 @@ If you create a custom template in your project root, it will be used instead of
 
 ### For Docker Compose (SSH) Deployment
 
-**Set your deployment target:**
+**Set your deployment target (choose one method):**
 
 ```bash
+# Option 1: Via deploy-kit.toml (recommended - persistent config)
+# Edit deploy-kit.toml: ssh_target = "user@host.example.com"
+deploy-kit --compose
+
+# Option 2: Via environment variable
 export DEPLOY_TARGET=user@host.example.com
+deploy-kit --compose
+
+# Option 3: Via CLI argument (one-off override)
+deploy-kit --compose user@host.example.com
 ```
 
-**Deploy:**
+**Via justfile:**
 
 ```bash
-# Via justfile (easiest)
 just up-compose user@host.example.com
-
-# Or direct command
-deploy-kit --compose user@host.example.com
-
-# Or using environment variable
-deploy-kit --compose
+# Or if ssh_target is set in deploy-kit.toml:
+just up-compose
 ```
 
 **What happens:**
@@ -301,21 +310,28 @@ deploy-kit --compose
 **Set your API credentials:**
 
 ```bash
+# Option 1: URL in deploy-kit.toml + API key in .env.sops (recommended)
+# Edit deploy-kit.toml: portainer_url = "https://portainer.example.com"
+# Add to .env.sops: PORTAINER_API_KEY=ptr_xxx...
+deploy-kit --portainer
+
+# Option 2: Via environment variables
 export PORTAINER_URL=https://portainer.example.com
 export PORTAINER_API_KEY=ptr_xxx...
+deploy-kit --portainer
+
+# Option 3: Via CLI argument (URL) + env var (API key)
+export PORTAINER_API_KEY=ptr_xxx...
+deploy-kit --portainer https://portainer.example.com
 ```
 
-**Deploy:**
+**Via justfile:**
 
 ```bash
-# Via justfile (easiest)
 just up-portainer https://portainer.example.com
-
-# Or direct command
-deploy-kit --portainer https://portainer.example.com
-
-# Or using environment variables
-deploy-kit --portainer
+# Or if portainer_url is set in deploy-kit.toml:
+export PORTAINER_API_KEY=ptr_xxx...  # Still need API key
+just up-portainer
 ```
 
 **What happens:**

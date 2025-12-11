@@ -16,6 +16,17 @@ keep_tarballs = 5
 # Can also be set via DEPLOY_ARCH environment variable
 # architecture = "linux/amd64"
 
-# Portainer configuration (alternatively set via environment variables)
+# Deployment target configuration
+# Note: CLI arguments and environment variables take precedence over these settings
+
+# SSH target for Compose backend (alternatively use DEPLOY_TARGET env var or CLI arg)
+# Example: "user@host.example.com" or "user@192.168.1.100"
+# ssh_target = "deploy@production.example.com"
+
+# Portainer URL for API backend (alternatively use PORTAINER_URL env var or CLI arg)
+# Example: "https://portainer.example.com" or "http://localhost:9000"
 # portainer_url = "https://portainer.example.com"
-# Note: PORTAINER_API_KEY should be set as environment variable for security
+
+# Security note: PORTAINER_API_KEY should ALWAYS be set as environment variable
+# Recommended: Store in .env.sops (encrypted with SOPS) - deploy-kit decrypts automatically
+# Never commit API keys to deploy-kit.toml or plain .env files

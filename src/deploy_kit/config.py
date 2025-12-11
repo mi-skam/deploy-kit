@@ -18,6 +18,8 @@ class DeployConfig:
     healthcheck_path: str
     keep_tarballs: int
     architecture: str
+    ssh_target: str | None
+    portainer_url: str | None
 
 
 def get_platform_architecture() -> str:
@@ -101,4 +103,6 @@ def load_config() -> DeployConfig:
             "DEPLOY_ARCH",
             deploy_config.get("architecture", get_platform_architecture()),
         ),
+        ssh_target=os.getenv("DEPLOY_TARGET", deploy_config.get("ssh_target")),
+        portainer_url=os.getenv("PORTAINER_URL", deploy_config.get("portainer_url")),
     )

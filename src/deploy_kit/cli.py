@@ -77,19 +77,19 @@ def up(backend: str | None, target: str | None):
 
         # Validate backend-specific requirements BEFORE building
         if backend == "compose":
-            ssh_target = target or os.getenv("DEPLOY_TARGET") or ""
+            ssh_target = target or os.getenv("DEPLOY_TARGET") or cfg.ssh_target or ""
             if not is_non_empty_str(ssh_target):
                 logger.error("SSH target required for Compose backend")
-                logger.error("Provide as argument or set DEPLOY_TARGET env var")
+                logger.error("Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml")
                 raise click.UsageError(
                     "Usage: deploy-kit --compose user@host.example.com"
                 )
         elif backend == "portainer":
-            portainer_url = target or os.getenv("PORTAINER_URL") or ""
+            portainer_url = target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
             portainer_key = os.getenv("PORTAINER_API_KEY") or ""
             if not is_non_empty_str(portainer_url):
                 logger.error("Portainer URL required")
-                logger.error("Provide as argument or set PORTAINER_URL env var")
+                logger.error("Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml")
                 raise click.UsageError(
                     "Usage: deploy-kit --portainer https://portainer.example.com"
                 )
@@ -196,10 +196,10 @@ def down(backend: str | None, target: str | None, keep_images: bool, keep_files:
 
         # Teardown based on backend
         if backend == "compose":
-            ssh_target = target or os.getenv("DEPLOY_TARGET") or ""
+            ssh_target = target or os.getenv("DEPLOY_TARGET") or cfg.ssh_target or ""
             if not is_non_empty_str(ssh_target):
                 logger.error("SSH target required for Compose backend")
-                logger.error("Provide as argument or set DEPLOY_TARGET env var")
+                logger.error("Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml")
                 raise click.UsageError(
                     "Usage: deploy-kit down --compose user@host.example.com"
                 )
@@ -207,11 +207,11 @@ def down(backend: str | None, target: str | None, keep_images: bool, keep_files:
             compose.teardown(ssh_target, cfg, keep_images, keep_files)
 
         elif backend == "portainer":
-            portainer_url = target or os.getenv("PORTAINER_URL") or ""
+            portainer_url = target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
             portainer_key = os.getenv("PORTAINER_API_KEY") or ""
             if not is_non_empty_str(portainer_url):
                 logger.error("Portainer URL required")
-                logger.error("Provide as argument or set PORTAINER_URL env var")
+                logger.error("Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml")
                 raise click.UsageError(
                     "Usage: deploy-kit down --portainer https://portainer.example.com"
                 )
