@@ -29,7 +29,9 @@ def detect_env_file() -> Path | None:
         logger.info("Using .env file")
         return env_plain
     else:
-        logger.warning("No .env or .env.sops found - deploying without environment variables")
+        logger.warning(
+            "No .env or .env.sops found - deploying without environment variables"
+        )
         return None
 
 
@@ -54,10 +56,18 @@ def decrypt_to_temp(env_sops: Path) -> Path:
         # Call sops CLI directly with dotenv format
         with open(temp_path, "w") as f:
             subprocess.run(
-                ["sops", "--input-type", "dotenv", "--output-type", "dotenv", "-d", str(env_sops)],
+                [
+                    "sops",
+                    "--input-type",
+                    "dotenv",
+                    "--output-type",
+                    "dotenv",
+                    "-d",
+                    str(env_sops),
+                ],
                 stdout=f,
                 check=True,
-                text=True
+                text=True,
             )
     except FileNotFoundError:
         temp_path.unlink()

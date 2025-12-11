@@ -1,4 +1,5 @@
 """Configuration detection and loading from project's pyproject.toml"""
+
 import tomllib
 import subprocess
 import os

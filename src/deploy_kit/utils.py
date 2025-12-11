@@ -1,6 +1,7 @@
 """Logging utilities using rich"""
+
+from typing import TypeGuard
 from rich.console import Console
-import sys
 
 console = Console()
 console_err = Console(stderr=True)
@@ -24,3 +25,20 @@ class Logger:
 
 # Global logger instance
 logger = Logger()
+
+
+def is_non_empty_str(value: str | None) -> TypeGuard[str]:
+    """Type guard that checks if value is a non-empty string.
+
+    Args:
+        value: The value to check
+
+    Returns:
+        True if value is a non-None, non-empty string
+
+    Usage:
+        if not is_non_empty_str(var):
+            raise ValueError("var must be a string")
+        # var is now typed as str (not str | None)
+    """
+    return value is not None and value != ""

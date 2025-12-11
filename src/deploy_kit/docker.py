@@ -1,4 +1,5 @@
 """Docker operations orchestration"""
+
 from pathlib import Path
 from .utils import logger
 from .scripts import run_script
@@ -57,9 +58,7 @@ def cleanup_old_tarballs(project_name: str, keep: int):
         return
 
     pattern = f"{project_name}-*.tar.gz"
-    tarballs = sorted(
-        dist.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True
-    )
+    tarballs = sorted(dist.glob(pattern), key=lambda p: p.stat().st_mtime, reverse=True)
 
     for old in tarballs[keep:]:
         old.unlink()

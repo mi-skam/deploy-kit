@@ -1,6 +1,6 @@
 """Portainer API deployment backend"""
+
 import httpx
-import os
 from pathlib import Path
 from string import Template
 from ..utils import logger
@@ -27,7 +27,9 @@ def deploy(config, env_file: Path | None, url: str, api_key: str):
         if stack_id:
             update_stack(client, stack_id, endpoint_id, compose_content, env_vars)
         else:
-            create_stack(client, config.project_name, endpoint_id, compose_content, env_vars)
+            create_stack(
+                client, config.project_name, endpoint_id, compose_content, env_vars
+            )
 
         logger.success(f"Portainer deployment complete: {config.project_name}")
     finally:
@@ -55,7 +57,9 @@ def teardown(config, url: str, api_key: str):
             return
 
         # Delete stack
-        resp = client.delete(f"/api/stacks/{stack_id}", params={"endpointId": endpoint_id})
+        resp = client.delete(
+            f"/api/stacks/{stack_id}", params={"endpointId": endpoint_id}
+        )
         resp.raise_for_status()
 
         logger.success(f"Stack '{config.project_name}' removed from Portainer")

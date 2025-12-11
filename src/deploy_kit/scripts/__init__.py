@@ -1,4 +1,5 @@
 """Bash script runner"""
+
 import subprocess
 from pathlib import Path
 
