@@ -4,6 +4,7 @@ import httpx
 from pathlib import Path
 from string import Template
 from ..utils import logger
+from .. import docker
 
 
 def deploy(config, env_file: Path | None, url: str, api_key: str):
@@ -15,11 +16,16 @@ def deploy(config, env_file: Path | None, url: str, api_key: str):
         url: Portainer URL
         api_key: Portainer API key
     """
+    # Push image to registry if configured
+    registry_url = config.registry_url
+    if registry_url:
+        docker.push_image(config, registry_url)
+
     client = httpx.Client(base_url=url, headers={"X-API-Key": api_key}, timeout=30.0)
 
     try:
         endpoint_id = get_endpoint(client)
-        compose_content = prepare_compose_content(config)
+        compose_content = prepare_compose_content(config, registry_url)
         env_vars = parse_env_file(env_file) if env_file else []
 
         stack_id = check_stack_exists(client, config.project_name)
@@ -155,11 +161,12 @@ def update_stack(
     resp.raise_for_status()
 
 
-def prepare_compose_content(config) -> str:
+def prepare_compose_content(config, registry_url: str | None = None) -> str:
     """Load and substitute compose template
 
     Args:
         config: DeployConfig instance
+        registry_url: Optional registry URL for image prefix
 
     Returns:
         Substituted compose content
@@ -169,9 +176,16 @@ def prepare_compose_content(config) -> str:
     template_path = find_compose_template()
     template = Template(template_path.read_text())
 
+    # Build image reference with optional registry prefix
+    if registry_url:
+        image_ref = f"{registry_url}/{config.project_name}:{config.image_tag}"
+    else:
+        image_ref = f"{config.project_name}:{config.image_tag}"
+
     return template.substitute(
         PROJECT_NAME=config.project_name,
         IMAGE_TAG=config.image_tag,
+        IMAGE_REF=image_ref,
         PORT=config.port,
         HEALTHCHECK_PATH=config.healthcheck_path,
     )

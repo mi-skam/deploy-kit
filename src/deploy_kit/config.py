@@ -20,6 +20,7 @@ class DeployConfig:
     architecture: str
     ssh_target: str | None
     portainer_url: str | None
+    registry_url: str | None
 
 
 def get_platform_architecture() -> str:
@@ -105,4 +106,5 @@ def load_config() -> DeployConfig:
         ),
         ssh_target=os.getenv("DEPLOY_TARGET", deploy_config.get("ssh_target")),
         portainer_url=os.getenv("PORTAINER_URL", deploy_config.get("portainer_url")),
+        registry_url=os.getenv("REGISTRY_URL", deploy_config.get("registry_url")),
     )
