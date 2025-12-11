@@ -34,6 +34,35 @@ def deploy(config, env_file: Path | None, url: str, api_key: str):
         client.close()
 
 
+def teardown(config, url: str, api_key: str):
+    """Remove stack from Portainer via REST API.
+
+    Args:
+        config: DeployConfig instance
+        url: Portainer URL
+        api_key: Portainer API key
+    """
+    logger.info(f"Tearing down stack '{config.project_name}' from Portainer")
+
+    client = httpx.Client(base_url=url, headers={"X-API-Key": api_key}, timeout=30.0)
+
+    try:
+        endpoint_id = get_endpoint(client)
+        stack_id = check_stack_exists(client, config.project_name)
+
+        if not stack_id:
+            logger.warn(f"Stack '{config.project_name}' not found - already torn down?")
+            return
+
+        # Delete stack
+        resp = client.delete(f"/api/stacks/{stack_id}", params={"endpointId": endpoint_id})
+        resp.raise_for_status()
+
+        logger.success(f"Stack '{config.project_name}' removed from Portainer")
+    finally:
+        client.close()
+
+
 def get_endpoint(client: httpx.Client) -> int:
     """Get Portainer endpoint ID (usually 1 for single-node)
 

@@ -79,9 +79,13 @@ deploy-kit --portainer
 ```just
 import? "deploy-kit/justfile.include"
 
-# Then use:
-just deploy-compose user@host           # Compose with SSH
-just deploy-portainer https://url       # Portainer with API
+# Deployment
+just up-compose user@host           # Compose with SSH
+just up-portainer https://url       # Portainer with API
+
+# Teardown
+just down-compose user@host         # Full cleanup
+just down-portainer https://url     # Remove Portainer stack
 ```
 
 ### Deployment workflow

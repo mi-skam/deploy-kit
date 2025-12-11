@@ -45,6 +45,31 @@ def deploy(target: str, config, env_file: Path | None):
     docker.cleanup_old_tarballs(config.project_name, config.keep_tarballs)
 
 
+def teardown(target: str, config, keep_images: bool, keep_files: bool):
+    """Remove deployed resources from remote server via SSH.
+
+    Args:
+        target: SSH target (user@host)
+        config: DeployConfig instance
+        keep_images: If True, preserve Docker images on remote
+        keep_files: If True, preserve transferred files in /tmp/
+    """
+    logger.info(f"Tearing down {config.project_name} from {target}")
+
+    run_script(
+        "ssh_remote_teardown.sh",
+        [
+            target,
+            config.project_name,
+            config.image_tag,
+            "true" if keep_images else "false",
+            "true" if keep_files else "false",
+        ],
+    )
+
+    logger.success(f"Teardown complete for {config.project_name}")
+
+
 def find_compose_template() -> Path:
     """Find docker-compose template (project root or deploy-kit fallback)
 

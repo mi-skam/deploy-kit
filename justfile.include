@@ -4,22 +4,39 @@
 # Auto-detect deploy-kit invocation
 _deploy_kit := if path_exists("deploy-kit/pyproject.toml") == "true" { "uvx --from ./deploy-kit deploy-kit" } else { "deploy-kit" }
 
+
 # Deploy via docker-compose (SSH)
-deploy-compose target:
-    {{_deploy_kit}} --compose {{target}}
+[group('deploy')]
+up-compose target:
+    {{_deploy_kit}} up --compose {{target}}
 
 # Deploy via Portainer API (pass URL as argument)
-deploy-portainer url:
-    {{_deploy_kit}} --portainer {{url}}
+[group('deploy')]
+up-portainer url:
+    {{_deploy_kit}} up --portainer {{url}}
+
+# Teardown from remote server (compose backend)
+[group('deploy')]
+down-compose target:
+    {{_deploy_kit}} down --compose {{target}}
+
+# Teardown from Portainer
+[group('deploy')]
+down-portainer url:
+    {{_deploy_kit}} down --portainer {{url}}
+
 
 # SOPS helpers (use sops CLI directly)
-sops-encrypt:
+[group('secrets')]
+env-encrypt:
     sops --input-type dotenv --output-type dotenv -e .env > .env.sops
     @echo "Encrypted .env -> .env.sops"
 
-sops-decrypt:
+[group('secrets')]
+env-decrypt:
     sops --input-type dotenv --output-type dotenv -d .env.sops > .env
     @echo "Decrypted .env.sops -> .env (don't commit!)"
 
-sops-edit:
+[group('secrets')]
+env-edit:
     sops --input-type dotenv --output-type dotenv .env.sops
