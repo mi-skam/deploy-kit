@@ -6,6 +6,19 @@ Reusable Docker deployment toolkit for containerized applications with support f
 
 Works with Docker Compose over SSH or Portainer's API. If you're deploying Python projects with `pyproject`.toml, it picks up the config automatically. Handles multi-arch builds (arm64/amd64) based on what you're running, though you can override that. When it finds `.env.sops` files, it decrypts them. Includes health check setup and cleans up old image tarballs. The Python code handles orchestration while bash scripts do the actual work. You can install it with uv tool, direnv, or just add it to your PATH.
 
+## Getting Started
+
+New to deploy-kit? Start with one of these guides:
+
+- **[Adding Deploy-Kit to an Existing Project](docs/existing-project-guide.md)** - Step-by-step integration guide for existing Python projects
+- **[Creating a New Project with Deploy-Kit](docs/new-project-guide.md)** - Complete setup guide for new projects from scratch
+
+Quick reference sections:
+- [Installation](#installation) - Different installation methods
+- [Usage](#usage) - Command-line examples
+- [Configuration](#configuration) - Config file and environment variables
+- [SOPS Integration](#sops-integration) - Encrypted secrets management
+
 ## Installation
 
 Choose based on your workflow:
