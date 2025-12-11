@@ -14,13 +14,14 @@ PROJECT_NAME="$PROJECT_NAME"
 IMAGE_TAG="$IMAGE_TAG"
 PORT="$PORT"
 HEALTHCHECK_PATH="$HEALTHCHECK_PATH"
+IMAGE_REF="\$PROJECT_NAME:\$IMAGE_TAG"
 
 echo "Loading Docker image..."
 cd /tmp
 gunzip -c \$PROJECT_NAME-\$IMAGE_TAG.tar.gz | docker load
 
 echo "Preparing docker-compose.yml..."
-export PROJECT_NAME IMAGE_TAG PORT HEALTHCHECK_PATH
+export PROJECT_NAME IMAGE_TAG PORT HEALTHCHECK_PATH IMAGE_REF
 envsubst < docker-compose.prod.yml.template > docker-compose.yml
 
 echo "Stopping and removing old containers..."

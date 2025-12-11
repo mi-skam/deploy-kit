@@ -46,6 +46,27 @@ def save_image(config) -> Path:
     return tarball
 
 
+def push_image(config, registry_url: str) -> str:
+    """Tag and push Docker image to registry
+
+    Args:
+        config: DeployConfig instance
+        registry_url: Registry URL (e.g., "localhost:5000" or "dockerhost:5000")
+
+    Returns:
+        Full image reference with registry prefix (e.g., "localhost:5000/myapp:abc123")
+    """
+    registry_image = f"{registry_url}/{config.project_name}:{config.image_tag}"
+    logger.info(f"Pushing image to registry: {registry_image}")
+
+    run_script(
+        "docker_push.sh", [config.project_name, config.image_tag, registry_url]
+    )
+
+    logger.success(f"Pushed: {registry_image}")
+    return registry_image
+
+
 def cleanup_old_tarballs(project_name: str, keep: int):
     """Remove old tarballs, keeping only the most recent N
 

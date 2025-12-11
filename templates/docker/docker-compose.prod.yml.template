@@ -2,7 +2,7 @@ name: ${PROJECT_NAME}
 
 services:
   ${PROJECT_NAME}:
-    image: ${PROJECT_NAME}:${IMAGE_TAG}
+    image: ${IMAGE_REF}
     container_name: ${PROJECT_NAME}
     env_file:
       - .env
