@@ -2,9 +2,7 @@
 """Project initialization logic for deploy-kit."""
 
 import os
-import shutil
 from pathlib import Path
-from typing import Optional
 
 from .utils import logger
 
@@ -16,7 +14,7 @@ def init_project(
     port: int = 8000,
 ) -> None:
     """Initialize a new project with deploy-kit configuration.
-    
+
     Args:
         project_name: Name of the project (used for docker image, directories)
         description: Project description for pyproject.toml
@@ -24,20 +22,20 @@ def init_project(
         port: Port for the application (default: 8000)
     """
     current_dir = Path.cwd()
-    
+
     # Check if directory is empty (except for hidden files like .git)
-    visible_files = [f for f in os.listdir(current_dir) if not f.startswith('.')]
+    visible_files = [f for f in os.listdir(current_dir) if not f.startswith(".")]
     if visible_files:
         raise FileExistsError(
             f"Directory {current_dir} is not empty. "
             "Please run 'deploy-kit init' in an empty directory."
         )
-    
+
     logger.info(f"Initializing project: {project_name}")
-    
+
     # Create directory structure
     create_directory_structure(current_dir, project_name)
-    
+
     # Create configuration files
     create_pyproject_toml(current_dir, project_name, description, python_version)
     create_deploy_kit_toml(current_dir, port)
@@ -47,13 +45,13 @@ def init_project(
     create_justfile(current_dir, project_name)
     create_sops_yaml(current_dir)
     create_env_example(current_dir)
-    
+
     # Create application files
     create_app_files(current_dir, project_name)
-    
+
     # Create README
     create_readme(current_dir, project_name)
-    
+
     logger.success(f"✓ Project {project_name} initialized successfully!")
     logger.info("")
     logger.info("Next steps:")
@@ -74,7 +72,7 @@ def init_project(
 def create_directory_structure(base_dir: Path, project_name: str) -> None:
     """Create the basic directory structure."""
     module_name = project_name.replace("-", "_")
-    
+
     (base_dir / "src" / module_name).mkdir(parents=True, exist_ok=True)
     logger.info(f"Created directory: src/{module_name}/")
 
@@ -84,7 +82,7 @@ def create_pyproject_toml(
 ) -> None:
     """Create pyproject.toml with basic configuration."""
     module_name = project_name.replace("-", "_")
-    
+
     content = f"""[project]
 name = "{project_name}"
 version = "0.1.0"
@@ -103,7 +101,7 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["src/{module_name}"]
 """
-    
+
     (base_dir / "pyproject.toml").write_text(content)
     logger.info("Created: pyproject.toml")
 
@@ -128,7 +126,7 @@ keep_tarballs = 3
 # Portainer URL for API backend (alternatively use PORTAINER_URL env var or CLI arg)
 # portainer_url = "https://portainer.example.com"
 """
-    
+
     (base_dir / "deploy-kit.toml").write_text(content)
     logger.info("Created: deploy-kit.toml")
 
@@ -138,7 +136,7 @@ def create_dockerfile(
 ) -> None:
     """Create a production-ready Dockerfile."""
     module_name = project_name.replace("-", "_")
-    
+
     content = f"""FROM python:{python_version}-slim
 
 # Install curl for health checks
@@ -169,7 +167,7 @@ ENV PYTHONPATH=/app/src
 # Run application
 CMD ["uvicorn", "{module_name}.main:app", "--host", "0.0.0.0", "--port", "{port}"]
 """
-    
+
     (base_dir / "Dockerfile").write_text(content)
     logger.info("Created: Dockerfile")
 
@@ -180,7 +178,7 @@ def create_docker_compose_template(base_dir: Path) -> None:
     template_path = (
         deploy_kit_dir / "templates" / "docker" / "docker-compose.prod.yml.template"
     )
-    
+
     if template_path.exists():
         content = template_path.read_text()
     else:
@@ -208,7 +206,7 @@ services:
         max-size: "10m"
         max-file: "3"
 """
-    
+
     (base_dir / "docker-compose.prod.yml.template").write_text(content)
     logger.info("Created: docker-compose.prod.yml.template")
 
@@ -260,7 +258,7 @@ htmlcov/
 # Logs
 *.log
 """
-    
+
     (base_dir / ".gitignore").write_text(content)
     logger.info("Created: .gitignore")
 
@@ -268,7 +266,7 @@ htmlcov/
 def create_justfile(base_dir: Path, project_name: str) -> None:
     """Create justfile with deploy-kit integration."""
     module_name = project_name.replace("-", "_")
-    
+
     content = f"""import? "deploy-kit/justfile.include"
 
 # Development server with hot reload
@@ -291,7 +289,7 @@ build:
 run:
     docker run -p 8000:8000 --env-file .env {project_name}:latest
 """
-    
+
     (base_dir / "justfile").write_text(content)
     logger.info("Created: justfile")
 
@@ -300,7 +298,7 @@ def create_sops_yaml(base_dir: Path) -> None:
     """Create .sops.yaml.example for SOPS configuration."""
     deploy_kit_dir = Path(__file__).parent.parent.parent
     template_path = deploy_kit_dir / ".sops.yaml.example"
-    
+
     if template_path.exists():
         content = template_path.read_text()
     else:
@@ -318,7 +316,7 @@ creation_rules:
     age: >-
       <YOUR_AGE_PUBLIC_KEY>
 """
-    
+
     (base_dir / ".sops.yaml.example").write_text(content)
     logger.info("Created: .sops.yaml.example")
 
@@ -338,7 +336,7 @@ LOG_LEVEL=info
 # For Portainer deployments
 # PORTAINER_API_KEY=ptr_xxx...
 """
-    
+
     (base_dir / ".env.example").write_text(content)
     logger.info("Created: .env.example")
 
@@ -347,10 +345,10 @@ def create_app_files(base_dir: Path, project_name: str) -> None:
     """Create basic FastAPI application files."""
     module_name = project_name.replace("-", "_")
     app_dir = base_dir / "src" / module_name
-    
+
     # __init__.py
     (app_dir / "__init__.py").write_text(f'""""{project_name} application."""\n')
-    
+
     # main.py with basic FastAPI app
     main_content = """from fastapi import FastAPI
 
@@ -366,7 +364,7 @@ async def root():
 async def health():
     return {"status": "healthy"}
 """
-    
+
     (app_dir / "main.py").write_text(main_content)
     logger.info(f"Created: src/{module_name}/__init__.py")
     logger.info(f"Created: src/{module_name}/main.py")
@@ -375,7 +373,7 @@ async def health():
 def create_readme(base_dir: Path, project_name: str) -> None:
     """Create README.md with getting started instructions."""
     module_name = project_name.replace("-", "_")
-    
+
     content = f"""# {project_name}
 
 A Python application created with deploy-kit.
@@ -526,6 +524,6 @@ just env-edit               # Edit encrypted secrets
 
 MIT
 """
-    
+
     (base_dir / "README.md").write_text(content)
     logger.info("Created: README.md")

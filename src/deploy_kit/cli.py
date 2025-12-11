@@ -81,16 +81,22 @@ def up(backend: str | None, target: str | None):
             ssh_target = target or os.getenv("DEPLOY_TARGET") or cfg.ssh_target or ""
             if not is_non_empty_str(ssh_target):
                 logger.error("SSH target required for Compose backend")
-                logger.error("Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml")
+                logger.error(
+                    "Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml"
+                )
                 raise click.UsageError(
                     "Usage: deploy-kit --compose user@host.example.com"
                 )
         elif backend == "portainer":
-            portainer_url = target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
+            portainer_url = (
+                target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
+            )
             portainer_key = os.getenv("PORTAINER_API_KEY") or ""
             if not is_non_empty_str(portainer_url):
                 logger.error("Portainer URL required")
-                logger.error("Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml")
+                logger.error(
+                    "Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml"
+                )
                 raise click.UsageError(
                     "Usage: deploy-kit --portainer https://portainer.example.com"
                 )
@@ -200,7 +206,9 @@ def down(backend: str | None, target: str | None, keep_images: bool, keep_files:
             ssh_target = target or os.getenv("DEPLOY_TARGET") or cfg.ssh_target or ""
             if not is_non_empty_str(ssh_target):
                 logger.error("SSH target required for Compose backend")
-                logger.error("Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml")
+                logger.error(
+                    "Provide via CLI, DEPLOY_TARGET env var, or deploy-kit.toml"
+                )
                 raise click.UsageError(
                     "Usage: deploy-kit down --compose user@host.example.com"
                 )
@@ -208,11 +216,15 @@ def down(backend: str | None, target: str | None, keep_images: bool, keep_files:
             compose.teardown(ssh_target, cfg, keep_images, keep_files)
 
         elif backend == "portainer":
-            portainer_url = target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
+            portainer_url = (
+                target or os.getenv("PORTAINER_URL") or cfg.portainer_url or ""
+            )
             portainer_key = os.getenv("PORTAINER_API_KEY") or ""
             if not is_non_empty_str(portainer_url):
                 logger.error("Portainer URL required")
-                logger.error("Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml")
+                logger.error(
+                    "Provide via CLI, PORTAINER_URL env var, or deploy-kit.toml"
+                )
                 raise click.UsageError(
                     "Usage: deploy-kit down --portainer https://portainer.example.com"
                 )
@@ -263,7 +275,7 @@ def init_cmd(
     port: int,
 ):
     """Initialize a new project with deploy-kit configuration
-    
+
     Creates a basic Python project structure with:
     - FastAPI application template
     - Dockerfile for containerization
@@ -271,14 +283,14 @@ def init_cmd(
     - Docker Compose template
     - SOPS configuration for secrets
     - Justfile with common tasks
-    
+
     \b
     Examples:
       deploy-kit init my-app                    # Initialize with default settings
       deploy-kit init my-app -d "My API"        # With custom description
       deploy-kit init my-app --port 8080        # With custom port
       deploy-kit init my-app --python-version 3.11  # With specific Python version
-    
+
     \b
     After initialization:
       1. cd my-app
@@ -302,7 +314,7 @@ def init_cmd(
             project_dir.mkdir(parents=True)
             os.chdir(project_dir)
             logger.info(f"Created and changed to directory: {project_name}")
-        
+
         # Initialize the project
         init.init_project(
             project_name=project_name,
@@ -310,7 +322,7 @@ def init_cmd(
             python_version=python_version,
             port=port,
         )
-        
+
     except FileExistsError as e:
         logger.error(str(e))
         sys.exit(1)
