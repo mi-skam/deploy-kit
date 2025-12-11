@@ -1,0 +1,21 @@
+# Deploy-kit configuration example
+# Copy this to your project root as deploy.toml to customize deployment
+
+[deploy]
+# Override default port (default: 8000)
+port = 8001
+
+# Custom healthcheck path (default: /)
+healthcheck_path = "/health"
+
+# Number of old tarballs to keep (default: 3)
+keep_tarballs = 5
+
+# Target architecture for Docker build (default: auto-detected from build system)
+# Options: "linux/arm64" or "linux/amd64"
+# Can also be set via DEPLOY_ARCH environment variable
+# architecture = "linux/amd64"
+
+# Portainer configuration (alternatively set via environment variables)
+# portainer_url = "https://portainer.example.com"
+# Note: PORTAINER_API_KEY should be set as environment variable for security

@@ -1,0 +1,13 @@
+name: ${PROJECT_NAME}-dev
+
+services:
+  ${PROJECT_NAME}:
+    build: .
+    container_name: ${PROJECT_NAME}-dev
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:8000"
+    volumes:
+      - .:/app
+    restart: unless-stopped

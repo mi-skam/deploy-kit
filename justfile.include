@@ -1,0 +1,25 @@
+# Deploy-kit integration
+# Import this file in your project's justfile with: import? "deploy-kit/justfile.include"
+
+# Auto-detect deploy-kit invocation
+_deploy_kit := if path_exists("deploy-kit/pyproject.toml") == "true" { "uvx --from ./deploy-kit deploy-kit" } else { "deploy-kit" }
+
+# Deploy via docker-compose (SSH)
+deploy-compose target:
+    {{_deploy_kit}} --compose {{target}}
+
+# Deploy via Portainer API (pass URL as argument)
+deploy-portainer url:
+    {{_deploy_kit}} --portainer {{url}}
+
+# SOPS helpers (use sops CLI directly)
+sops-encrypt:
+    sops --input-type dotenv --output-type dotenv -e .env > .env.sops
+    @echo "Encrypted .env -> .env.sops"
+
+sops-decrypt:
+    sops --input-type dotenv --output-type dotenv -d .env.sops > .env
+    @echo "Decrypted .env.sops -> .env (don't commit!)"
+
+sops-edit:
+    sops --input-type dotenv --output-type dotenv .env.sops

@@ -1,0 +1,46 @@
+# SOPS configuration example for deploy-kit projects
+#
+# This is a template for projects using deploy-kit's SOPS integration.
+# Copy this file to your project root and customize for your needs.
+#
+# Setup instructions:
+# 1. Copy to your project: cp deploy-kit/.sops.yaml.example .sops.yaml
+# 2. Install sops and age: brew install sops age
+# 3. Generate your age key: age-keygen -o ~/.config/sops/age/keys.txt
+# 4. Replace <YOUR_AGE_PUBLIC_KEY> below with the public key from step 3
+#    (the public key is displayed when you run age-keygen)
+# 5. Customize the path_regex if you encrypt files other than .env
+# 6. Encrypt your secrets: just sops-encrypt
+#
+# Deploy-kit SOPS integration:
+#   - Auto-detects .env.sops during deployment
+#   - Transparently decrypts to temporary file
+#   - Cleans up after deployment
+#   - Works with both Compose and Portainer backends
+#
+# Available just commands (via deploy-kit/justfile.include):
+#   just sops-encrypt    # Encrypt .env -> .env.sops
+#   just sops-decrypt    # Decrypt .env.sops -> .env
+#   just sops-edit       # Edit .env.sops (auto decrypt/encrypt)
+#
+# Security notes:
+#   - Commit: .env.sops, .sops.yaml
+#   - Never commit: .env, age private keys
+#   - Add to .gitignore: .env
+#
+# For team collaboration:
+#   - Add multiple age public keys (one per line)
+#   - Each team member needs their private key in ~/.config/sops/age/keys.txt
+#
+# Example with multiple recipients:
+#   creation_rules:
+#     - path_regex: \.env(\.sops)?$
+#       age: >-
+#         age1xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx,
+#         age1yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy,
+#         age1zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz
+
+creation_rules:
+  - path_regex: \.env(\.sops)?$
+    age: >-
+      <YOUR_AGE_PUBLIC_KEY>
