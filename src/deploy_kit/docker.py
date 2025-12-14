@@ -20,42 +20,40 @@ def build_image(config: DeployConfig) -> None:
         f"Building {config.project_name}:{config.image_tag} for {config.architecture}..."
     )
 
-    with docker.from_env() as client:
-        try:
-            # Build image with platform specification
-            # decode=True returns a generator, not a tuple
-            build_logs = client.images.build(
-                path=".",
-                tag=f"{config.project_name}:{config.image_tag}",
-                platform=config.architecture,
-                rm=True,  # Remove intermediate containers
-                decode=True,  # Decode log chunks as dicts
-            )
+    client = docker.from_env()
+    try:
+        # Build image with platform specification
+        # High-level API returns (Image, logs_generator) tuple
+        image, build_logs = client.images.build(
+            path=".",
+            tag=f"{config.project_name}:{config.image_tag}",
+            platform=config.architecture,
+            rm=True,  # Remove intermediate containers
+        )
 
-            # Stream build output for visibility
-            for chunk in build_logs:
-                if "stream" in chunk:
-                    line = chunk["stream"].strip()
-                    if line:
-                        print(line)  # Direct output for build progress
+        # Stream build output for visibility
+        for chunk in build_logs:
+            if "stream" in chunk:
+                line = chunk["stream"].strip()
+                if line:
+                    print(line)  # Direct output for build progress
 
-            # After iteration completes, retrieve the built image
-            image = client.images.get(f"{config.project_name}:{config.image_tag}")
+        # Also tag as latest
+        image.tag(config.project_name, "latest")
 
-            # Also tag as latest
-            image.tag(config.project_name, "latest")
+        logger.success(f"Built: {config.project_name}:{config.image_tag}")
 
-            logger.success(f"Built: {config.project_name}:{config.image_tag}")
-
-        except BuildError as e:
-            logger.error(f"Build failed: {e.msg}")
-            for log in e.build_log:
-                if "stream" in log:
-                    print(log["stream"].strip())
-            raise
-        except APIError as e:
-            logger.error(f"Docker API error: {e}")
-            raise
+    except BuildError as e:
+        logger.error(f"Build failed: {e.msg}")
+        for log in e.build_log:
+            if "stream" in log:
+                print(log["stream"].strip())
+        raise
+    except APIError as e:
+        logger.error(f"Docker API error: {e}")
+        raise
+    finally:
+        client.close()
 
 
 def save_image(config: DeployConfig) -> Path:
@@ -74,21 +72,23 @@ def save_image(config: DeployConfig) -> Path:
 
     tarball = dist / f"{config.project_name}-{config.image_tag}.tar.gz"
 
-    with docker.from_env() as client:
-        try:
-            image = client.images.get(f"{config.project_name}:{config.image_tag}")
+    client = docker.from_env()
+    try:
+        image = client.images.get(f"{config.project_name}:{config.image_tag}")
 
-            # Save image and compress with gzip
-            with gzip.open(tarball, "wb") as f:
-                for chunk in image.save(named=True):
-                    f.write(chunk)
+        # Save image and compress with gzip
+        with gzip.open(tarball, "wb") as f:
+            for chunk in image.save(named=True):
+                f.write(chunk)
 
-        except ImageNotFound:
-            logger.error(f"Image not found: {config.project_name}:{config.image_tag}")
-            raise
-        except APIError as e:
-            logger.error(f"Docker API error: {e}")
-            raise
+    except ImageNotFound:
+        logger.error(f"Image not found: {config.project_name}:{config.image_tag}")
+        raise
+    except APIError as e:
+        logger.error(f"Docker API error: {e}")
+        raise
+    finally:
+        client.close()
 
     logger.success(f"Saved: {tarball}")
     return tarball
