@@ -42,7 +42,7 @@ def build_image(config: DeployConfig) -> None:
             if "stream" in chunk:
                 line = chunk["stream"].strip()
                 if line:
-                    print(line)  # Direct output for build progress
+                    logger.stream(line)
 
         # Also tag as latest
         image.tag(config.project_name, "latest")
@@ -51,7 +51,7 @@ def build_image(config: DeployConfig) -> None:
         logger.error(f"Build failed: {e.msg}")
         for log in e.build_log:
             if "stream" in log:
-                print(log["stream"].strip())
+                logger.stream(log["stream"].strip())
         raise
     except APIError as e:
         logger.error(f"Docker API error: {e}")
