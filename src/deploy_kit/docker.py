@@ -10,11 +10,6 @@ from .config import DeployConfig
 from .utils import logger
 
 
-def get_client() -> docker.DockerClient:
-    """Get Docker client connected to local daemon."""
-    return docker.from_env()
-
-
 def build_image(config: DeployConfig) -> None:
     """Build Docker image using Docker SDK.
 
@@ -78,24 +73,21 @@ def save_image(config: DeployConfig) -> Path:
 
     tarball = dist / f"{config.project_name}-{config.image_tag}.tar.gz"
 
-    client = get_client()
+    with docker.from_env() as client:
+        try:
+            image = client.images.get(f"{config.project_name}:{config.image_tag}")
 
-    try:
-        image = client.images.get(f"{config.project_name}:{config.image_tag}")
+            # Save image and compress with gzip
+            with gzip.open(tarball, "wb") as f:
+                for chunk in image.save(named=True):
+                    f.write(chunk)
 
-        # Save image and compress with gzip
-        with gzip.open(tarball, "wb") as f:
-            for chunk in image.save(named=True):
-                f.write(chunk)
-
-    except ImageNotFound:
-        logger.error(f"Image not found: {config.project_name}:{config.image_tag}")
-        raise
-    except APIError as e:
-        logger.error(f"Docker API error: {e}")
-        raise
-    finally:
-        client.close()
+        except ImageNotFound:
+            logger.error(f"Image not found: {config.project_name}:{config.image_tag}")
+            raise
+        except APIError as e:
+            logger.error(f"Docker API error: {e}")
+            raise
 
     logger.success(f"Saved: {tarball}")
     return tarball
