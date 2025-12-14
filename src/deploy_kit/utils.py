@@ -22,6 +22,10 @@ class Logger:
     def error(self, msg: str):
         console_err.print(f"[red][ERROR][/red] {msg}")
 
+    def stream(self, msg: str):
+        """Stream output without prefix for real-time build logs."""
+        console.print(msg, highlight=False)
+
 
 # Global logger instance
 logger = Logger()
