@@ -47,6 +47,8 @@ def build_image(config: DeployConfig) -> None:
         # Also tag as latest
         image.tag(config.project_name, "latest")
 
+        logger.success(f"Built: {config.project_name}:{config.image_tag}")
+
     except BuildError as e:
         logger.error(f"Build failed: {e.msg}")
         for log in e.build_log:
@@ -58,8 +60,6 @@ def build_image(config: DeployConfig) -> None:
         raise
     finally:
         client.close()
-
-    logger.success(f"Built: {config.project_name}:{config.image_tag}")
 
 
 def save_image(config: DeployConfig) -> Path:
