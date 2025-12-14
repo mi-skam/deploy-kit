@@ -20,45 +20,42 @@ def build_image(config: DeployConfig) -> None:
         f"Building {config.project_name}:{config.image_tag} for {config.architecture}..."
     )
 
-    client = get_client()
+    with docker.from_env() as client:
+        try:
+            # Build image with platform specification
+            # decode=True returns a generator, not a tuple
+            build_logs = client.images.build(
+                path=".",
+                tag=f"{config.project_name}:{config.image_tag}",
+                platform=config.architecture,
+                rm=True,  # Remove intermediate containers
+                decode=True,  # Decode log chunks as dicts
+            )
 
-    try:
-        # Build image with platform specification
-        # decode=True returns a generator, not a tuple
-        build_logs = client.images.build(
-            path=".",
-            tag=f"{config.project_name}:{config.image_tag}",
-            platform=config.architecture,
-            rm=True,  # Remove intermediate containers
-            decode=True,  # Decode log chunks as dicts
-        )
+            # Stream build output for visibility
+            for chunk in build_logs:
+                if "stream" in chunk:
+                    line = chunk["stream"].strip()
+                    if line:
+                        print(line)  # Direct output for build progress
 
-        # Stream build output for visibility
-        for chunk in build_logs:
-            if "stream" in chunk:
-                line = chunk["stream"].strip()
-                if line:
-                    print(line)  # Direct output for build progress
+            # After iteration completes, retrieve the built image
+            image = client.images.get(f"{config.project_name}:{config.image_tag}")
 
-        # After iteration completes, retrieve the built image
-        image = client.images.get(f"{config.project_name}:{config.image_tag}")
+            # Also tag as latest
+            image.tag(config.project_name, "latest")
 
-        # Also tag as latest
-        image.tag(config.project_name, "latest")
+            logger.success(f"Built: {config.project_name}:{config.image_tag}")
 
-        logger.success(f"Built: {config.project_name}:{config.image_tag}")
-
-    except BuildError as e:
-        logger.error(f"Build failed: {e.msg}")
-        for log in e.build_log:
-            if "stream" in log:
-                print(log["stream"].strip())
-        raise
-    except APIError as e:
-        logger.error(f"Docker API error: {e}")
-        raise
-    finally:
-        client.close()
+        except BuildError as e:
+            logger.error(f"Build failed: {e.msg}")
+            for log in e.build_log:
+                if "stream" in log:
+                    print(log["stream"].strip())
+            raise
+        except APIError as e:
+            logger.error(f"Docker API error: {e}")
+            raise
 
 
 def save_image(config: DeployConfig) -> Path:
