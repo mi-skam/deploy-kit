@@ -24,7 +24,8 @@ def build_image(config: DeployConfig) -> None:
 
     try:
         # Build image with platform specification
-        image, build_logs = client.images.build(
+        # decode=True returns a generator, not a tuple
+        build_logs = client.images.build(
             path=".",
             tag=f"{config.project_name}:{config.image_tag}",
             platform=config.architecture,
@@ -38,6 +39,9 @@ def build_image(config: DeployConfig) -> None:
                 line = chunk["stream"].strip()
                 if line:
                     print(line)  # Direct output for build progress
+
+        # After iteration completes, retrieve the built image
+        image = client.images.get(f"{config.project_name}:{config.image_tag}")
 
         # Also tag as latest
         image.tag(config.project_name, "latest")
