@@ -1,4 +1,4 @@
-"""Configuration detection and loading from project's pyproject.toml"""
+"""Configuration detection and loading"""
 
 import tomllib
 import subprocess
@@ -46,35 +46,50 @@ def get_platform_architecture() -> str:
 
 
 def load_config() -> DeployConfig:
-    """Load config from project's pyproject.toml (CWD, not deploy-kit's)
+    """Load deployment configuration
 
     Configuration precedence (highest to lowest):
     1. Environment variables (DEPLOY_PORT, IMAGE_TAG, etc.)
-    2. deploy-kit.toml overrides
-    3. pyproject.toml auto-detection
+    2. deploy-kit.toml [deploy] section
+    3. pyproject.toml [project] section (optional, for Python projects)
     4. Built-in defaults
+
+    Requires either:
+    - deploy-kit.toml with name field, OR
+    - pyproject.toml with [project] section
     """
-    # Look in current working directory (the project using deploy-kit)
     cwd = Path.cwd()
-    pyproject = cwd / "pyproject.toml"
 
-    if not pyproject.exists():
-        raise FileNotFoundError(f"pyproject.toml not found in {cwd}")
-
-    # Load pyproject.toml (required)
-    with open(pyproject, "rb") as f:
-        pyproject_data = tomllib.load(f)
-
-    project_name = pyproject_data["project"]["name"]
-    project_version = pyproject_data["project"].get("version", "0.0.0")
-
-    # Load deploy-kit.toml from project (optional overrides)
+    # Load deploy-kit.toml (primary config)
     deploy_toml = cwd / "deploy-kit.toml"
-    deploy_config = {}
+    deploy_config: dict = {}
     if deploy_toml.exists():
         with open(deploy_toml, "rb") as f:
             deploy_data = tomllib.load(f)
             deploy_config = deploy_data.get("deploy", {})
+
+    # Load pyproject.toml (optional, for Python projects)
+    pyproject = cwd / "pyproject.toml"
+    pyproject_project: dict = {}
+    if pyproject.exists():
+        with open(pyproject, "rb") as f:
+            pyproject_data = tomllib.load(f)
+            pyproject_project = pyproject_data.get("project", {})
+
+    # Resolve project name: deploy-kit.toml > pyproject.toml
+    project_name = deploy_config.get("name") or pyproject_project.get("name")
+    if not project_name:
+        raise ValueError(
+            "Project name required. Set 'name' in deploy-kit.toml [deploy] section "
+            "or have a pyproject.toml with [project] name"
+        )
+
+    # Resolve version: deploy-kit.toml > pyproject.toml > default
+    project_version = (
+        deploy_config.get("version")
+        or pyproject_project.get("version")
+        or "0.0.0"
+    )
 
     # Git hash for image tag
     try:
