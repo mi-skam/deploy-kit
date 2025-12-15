@@ -86,9 +86,7 @@ def load_config() -> DeployConfig:
 
     # Resolve version: deploy-kit.toml > pyproject.toml > default
     project_version = (
-        deploy_config.get("version")
-        or pyproject_project.get("version")
-        or "0.0.0"
+        deploy_config.get("version") or pyproject_project.get("version") or "0.0.0"
     )
 
     # Git hash for image tag
