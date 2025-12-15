@@ -1,6 +1,6 @@
 [project]
 name = "deploy-kit"
-version = "0.2.6"
+version = "0.2.7"
 description = "Reusable Docker deployment toolkit with Portainer API and docker-compose support"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,9 +12,18 @@ dependencies = [
     "rich>=13.0.0",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+]
+
 [project.scripts]
 deploy-kit = "deploy_kit.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

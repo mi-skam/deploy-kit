@@ -5,9 +5,14 @@ TARGET="$1"
 TARBALL="$2"
 TEMPLATE="$3"
 ENV_FILE="$4"
+SKIP_TARBALL="${5:-false}"
 
-echo "Transferring tarball..."
-scp "$TARBALL" "$TARGET:/tmp/"
+if [ "$SKIP_TARBALL" = "true" ]; then
+    echo "Skipping tarball transfer (already exists with matching hash)"
+else
+    echo "Transferring tarball..."
+    scp "$TARBALL" "$TARGET:/tmp/"
+fi
 
 echo "Transferring compose template..."
 scp "$TEMPLATE" "$TARGET:/tmp/docker-compose.prod.yml.template"

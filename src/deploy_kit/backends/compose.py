@@ -1,9 +1,14 @@
 """Docker Compose deployment backend (SSH + SCP)"""
 
+import re
+import subprocess
 from pathlib import Path
+
 from .. import docker
 from ..utils import logger
-from ..scripts import run_script
+from ..scripts import run_script, run_script_capture
+
+SHA256_PATTERN = re.compile(r"^[a-f0-9]{64}$")
 
 
 def deploy(target: str, config, env_file: Path | None):
@@ -20,11 +25,32 @@ def deploy(target: str, config, env_file: Path | None):
     # Find compose template
     template = find_compose_template()
 
-    # Transfer files
+    # Check if tarball already exists on remote with same hash
+    local_hash = docker.compute_file_hash(tarball)
+    tarball_name = tarball.name
+
+    try:
+        remote_hash = run_script_capture("ssh_check_hash.sh", [target, tarball_name])
+        if not SHA256_PATTERN.match(remote_hash):
+            remote_hash = ""
+    except subprocess.CalledProcessError:
+        remote_hash = ""
+
+    skip_tarball = remote_hash and remote_hash == local_hash
+    if skip_tarball:
+        logger.info(f"Tarball already on {target} with matching hash, skipping tarball transfer")
+
+    # Transfer files (tarball transfer is conditional)
     logger.info(f"Transferring files to {target}...")
     run_script(
         "ssh_transfer.sh",
-        [target, str(tarball), str(template), str(env_file) if env_file else ""],
+        [
+            target,
+            str(tarball),
+            str(template),
+            str(env_file) if env_file else "",
+            "true" if skip_tarball else "false",
+        ],
     )
     logger.success("Files transferred")
 
