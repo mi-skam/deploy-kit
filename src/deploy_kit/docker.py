@@ -1,5 +1,7 @@
 """Docker operations using python-on-whales (CLI wrapper)"""
 
+import gzip
+import shutil
 from pathlib import Path
 
 from python_on_whales import docker, exceptions
@@ -45,10 +47,21 @@ def save_image(config: DeployConfig) -> Path:
     dist.mkdir(exist_ok=True)
 
     tarball = dist / f"{config.project_name}-{config.image_tag}.tar.gz"
+    tar_uncompressed = dist / f"{config.project_name}-{config.image_tag}.tar"
     image_tag = f"{config.project_name}:{config.image_tag}"
 
     try:
-        docker.image.save(image_tag, output=tarball)
+        # Save uncompressed tar first
+        docker.image.save(image_tag, output=tar_uncompressed)
+
+        # Compress with gzip
+        with open(tar_uncompressed, "rb") as f_in:
+            with gzip.open(tarball, "wb") as f_out:
+                shutil.copyfileobj(f_in, f_out)
+
+        # Remove uncompressed tar
+        tar_uncompressed.unlink()
+
     except exceptions.DockerException as e:
         logger.error(f"Save failed: {e}")
         raise
