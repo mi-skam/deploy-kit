@@ -1,63 +1,37 @@
-"""Docker operations using the Docker SDK"""
+"""Docker operations using python-on-whales (CLI wrapper)"""
 
-import gzip
 from pathlib import Path
 
-import docker
-from docker.errors import BuildError, APIError, ImageNotFound
+from python_on_whales import docker, exceptions
 
 from .config import DeployConfig
 from .utils import logger
 
 
 def build_image(config: DeployConfig) -> None:
-    """Build Docker image using Docker SDK.
+    """Build Docker image using Docker CLI via python-on-whales.
 
     Args:
         config: DeployConfig instance with project_name, image_tag, and architecture
     """
-    logger.info(
-        f"Building {config.project_name}:{config.image_tag} for {config.architecture}..."
-    )
+    image_tag = f"{config.project_name}:{config.image_tag}"
+    logger.info(f"Building {image_tag} for {config.architecture}...")
 
-    client = docker.from_env()
     try:
-        # Build image with platform specification
-        # High-level API returns (Image, logs_generator) tuple
-        image, build_logs = client.images.build(
-            path=".",
-            tag=f"{config.project_name}:{config.image_tag}",
-            platform=config.architecture,
-            rm=True,  # Remove intermediate containers
+        docker.build(
+            context_path=".",
+            tags=[image_tag, f"{config.project_name}:latest"],
+            platforms=[config.architecture],
         )
+        logger.success(f"Built: {image_tag}")
 
-        # Stream build output for visibility
-        for chunk in build_logs:
-            if "stream" in chunk:
-                line = chunk["stream"].strip()
-                if line:
-                    logger.stream(line)
-
-        # Also tag as latest
-        image.tag(config.project_name, "latest")
-
-        logger.success(f"Built: {config.project_name}:{config.image_tag}")
-
-    except BuildError as e:
-        logger.error(f"Build failed: {e.msg}")
-        for log in e.build_log:
-            if "stream" in log:
-                logger.stream(log["stream"].strip())
+    except exceptions.DockerException as e:
+        logger.error(f"Build failed: {e}")
         raise
-    except APIError as e:
-        logger.error(f"Docker API error: {e}")
-        raise
-    finally:
-        client.close()
 
 
 def save_image(config: DeployConfig) -> Path:
-    """Save Docker image to gzipped tarball using Docker SDK.
+    """Save Docker image to gzipped tarball.
 
     Args:
         config: DeployConfig instance
@@ -71,24 +45,13 @@ def save_image(config: DeployConfig) -> Path:
     dist.mkdir(exist_ok=True)
 
     tarball = dist / f"{config.project_name}-{config.image_tag}.tar.gz"
+    image_tag = f"{config.project_name}:{config.image_tag}"
 
-    client = docker.from_env()
     try:
-        image = client.images.get(f"{config.project_name}:{config.image_tag}")
-
-        # Save image and compress with gzip
-        with gzip.open(tarball, "wb") as f:
-            for chunk in image.save(named=True):
-                f.write(chunk)
-
-    except ImageNotFound:
-        logger.error(f"Image not found: {config.project_name}:{config.image_tag}")
+        docker.image.save(image_tag, output=tarball)
+    except exceptions.DockerException as e:
+        logger.error(f"Save failed: {e}")
         raise
-    except APIError as e:
-        logger.error(f"Docker API error: {e}")
-        raise
-    finally:
-        client.close()
 
     logger.success(f"Saved: {tarball}")
     return tarball
