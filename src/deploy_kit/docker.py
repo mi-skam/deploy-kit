@@ -59,9 +59,21 @@ def push_image(config, registry_url: str) -> str:
     registry_image = f"{registry_url}/{config.project_name}:{config.image_tag}"
     logger.info(f"Pushing image to registry: {registry_image}")
 
-    run_script(
-        "docker_push.sh", [config.project_name, config.image_tag, registry_url]
-    )
+    try:
+        run_script(
+            "docker_push.sh", [config.project_name, config.image_tag, registry_url]
+        )
+    except Exception as e:
+        logger.error(f"Failed to push image to registry: {registry_image}")
+        logger.error(f"Error: {e}")
+        # Optionally, inspect the error message for common Docker push failures
+        if hasattr(e, "output") and e.output:
+            output = e.output.decode() if hasattr(e.output, "decode") else str(e.output)
+            if "authentication required" in output.lower():
+                logger.error("Docker registry authentication failed. Please check your credentials.")
+            elif "connection refused" in output.lower() or "network" in output.lower():
+                logger.error("Could not connect to Docker registry. Please check registry URL and network connectivity.")
+        raise
 
     logger.success(f"Pushed: {registry_image}")
     return registry_image
