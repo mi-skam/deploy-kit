@@ -15,7 +15,9 @@ def deploy(config, env_file: Path | None, url: str, api_key: str):
         url: Portainer URL
         api_key: Portainer API key
     """
-    client = httpx.Client(base_url=url, headers={"X-API-Key": api_key}, timeout=30.0)
+    client = httpx.Client(
+        base_url=url, headers={"X-API-Key": api_key}, timeout=30.0, verify=False
+    )
 
     try:
         endpoint_id = get_endpoint(client)
@@ -46,7 +48,9 @@ def teardown(config, url: str, api_key: str):
     """
     logger.info(f"Tearing down stack '{config.project_name}' from Portainer")
 
-    client = httpx.Client(base_url=url, headers={"X-API-Key": api_key}, timeout=30.0)
+    client = httpx.Client(
+        base_url=url, headers={"X-API-Key": api_key}, timeout=30.0, verify=False
+    )
 
     try:
         endpoint_id = get_endpoint(client)

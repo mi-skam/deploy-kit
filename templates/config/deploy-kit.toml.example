@@ -1,7 +1,15 @@
 # Deploy-kit configuration example
-# Copy this to your project root as deploy.toml to customize deployment
+# Copy this to your project root as deploy-kit.toml
 
 [deploy]
+# Project name (required if no pyproject.toml)
+# For Python projects, this is auto-detected from pyproject.toml [project] name
+name = "my-project"
+
+# Project version (optional, defaults to "0.0.0")
+# For Python projects, this is auto-detected from pyproject.toml [project] version
+# version = "1.0.0"
+
 # Override default port (default: 8000)
 port = 8001
 
