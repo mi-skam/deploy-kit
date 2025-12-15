@@ -30,7 +30,7 @@ keep_tarballs = 5
 # Local Docker registry URL for Portainer deployments (alternatively use REGISTRY_URL env var)
 # When set, images are tagged and pushed to this registry before Portainer deployment
 # Portainer then pulls the image from the registry instead of requiring local image access
-# Example: "localhost:5000" or "dockerhost:5000" for a local registry
+# Example: "localhost:5000" or "registry.local:5000" for a local registry
 # registry_url = "localhost:5000"
 
 # Security note: PORTAINER_API_KEY should ALWAYS be set as environment variable
