@@ -11,6 +11,8 @@ Reusable Docker deployment toolkit for containerized applications with support f
   - [Option 2: Project submodule](#option-2-project-submodule-recommended-for-teamsrepos)
   - [Option 3: Ephemeral/direct use](#option-3-ephemeraldirect-use-nix-shells-direnv-ci)
 - [Usage](#usage)
+  - [Initialize a new project](#initialize-a-new-project)
+  - [Deploy to servers](#deploy-to-servers)
   - [Docker Compose deployment (SSH)](#docker-compose-deployment-ssh)
   - [Portainer deployment (API)](#portainer-deployment-api)
   - [Via just recipes](#via-just-recipes)
@@ -29,7 +31,9 @@ Reusable Docker deployment toolkit for containerized applications with support f
 
 ## Features
 
-Works with Docker Compose over SSH or Portainer's API. If you're deploying Python projects with `pyproject`.toml, it picks up the config automatically. Handles multi-arch builds (arm64/amd64) based on what you're running, though you can override that. When it finds `.env.sops` files, it decrypts them. Includes health check setup and cleans up old image tarballs. The Python code handles orchestration while bash scripts do the actual work. You can install it with uv tool, direnv, or just add it to your PATH.
+**Project Scaffolding**: Initialize new Python projects with a complete deployment-ready structure using `deploy-kit init`. Creates FastAPI applications with Docker, deployment config, and secret management built-in.
+
+**Flexible Deployment**: Works with Docker Compose over SSH or Portainer's API. If you're deploying Python projects with `pyproject`.toml, it picks up the config automatically. Handles multi-arch builds (arm64/amd64) based on what you're running, though you can override that. When it finds `.env.sops` files, it decrypts them. Includes health check setup and cleans up old image tarballs. The Python code handles orchestration while bash scripts do the actual work. You can install it with uv tool, direnv, or just add it to your PATH.
 
 ## Getting Started
 
@@ -78,6 +82,43 @@ uvx --from /path/to/deploy-kit deploy-kit --compose user@host
 Works in any environment with `uv` available.
 
 ## Usage
+
+Deploy-kit provides commands for project initialization and deployment.
+
+### Initialize a new project
+
+Create a new Python project with deploy-kit integration:
+
+```bash
+# Create new project with defaults
+deploy-kit init my-app
+
+# With custom options
+deploy-kit init my-app --description "My API" --port 8080 --python-version 3.11
+
+# Initialize in current directory (uses directory name as project name)
+mkdir my-app && cd my-app
+deploy-kit init
+```
+
+This creates a complete project structure with:
+- FastAPI application template
+- Dockerfile for containerization
+- Deploy-kit configuration
+- Docker Compose template
+- SOPS configuration for secrets
+- Justfile with common tasks
+- .gitignore with sensible defaults
+
+After initialization:
+```bash
+cd my-app
+uv venv && source .venv/bin/activate
+uv pip install -e .
+just dev  # Start development server
+```
+
+### Deploy to servers
 
 Deploy-kit requires explicit backend selection via command-line flags.
 

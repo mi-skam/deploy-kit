@@ -4,7 +4,8 @@
 import click
 import os
 import sys
-from . import __version__, config, docker, sops
+from pathlib import Path
+from . import __version__, config, docker, init, sops
 from .backends import compose, portainer
 from .utils import logger, is_non_empty_str
 
@@ -244,6 +245,89 @@ def down(backend: str | None, target: str | None, keep_images: bool, keep_files:
         raise  # Let click handle usage errors
     except Exception as e:
         logger.error(f"Teardown failed: {e}")
+        sys.exit(1)
+
+
+@main.command(name="init")
+@click.argument("project_name", required=False)
+@click.option(
+    "--description",
+    "-d",
+    default="A new Python application",
+    help="Project description",
+)
+@click.option(
+    "--python-version",
+    default="3.13",
+    help="Python version to use (default: 3.13)",
+)
+@click.option(
+    "--port",
+    "-p",
+    default=8000,
+    type=int,
+    help="Application port (default: 8000)",
+)
+def init_cmd(
+    project_name: str | None,
+    description: str,
+    python_version: str,
+    port: int,
+):
+    """Initialize a new project with deploy-kit configuration
+
+    Creates a basic Python project structure with:
+    - FastAPI application template
+    - Dockerfile for containerization
+    - Deploy-kit configuration
+    - Docker Compose template
+    - SOPS configuration for secrets
+    - Justfile with common tasks
+
+    \b
+    Examples:
+      deploy-kit init my-app                    # Initialize with default settings
+      deploy-kit init my-app -d "My API"        # With custom description
+      deploy-kit init my-app --port 8080        # With custom port
+      deploy-kit init my-app --python-version 3.11  # With specific Python version
+
+    \b
+    After initialization:
+      1. cd my-app
+      2. uv venv && source .venv/bin/activate
+      3. uv pip install -e .
+      4. just dev
+    """
+    try:
+        # If no project name provided, use current directory name
+        if not project_name:
+            project_name = Path.cwd().name
+            logger.info(f"Using current directory name as project name: {project_name}")
+        else:
+            # Create project directory if it doesn't exist
+            project_dir = Path.cwd() / project_name
+            if project_dir.exists():
+                raise FileExistsError(
+                    f"Directory '{project_name}' already exists. "
+                    "Please choose a different name or remove the existing directory."
+                )
+            project_dir.mkdir(parents=True)
+            os.chdir(project_dir)
+            logger.info(f"Created and changed to directory: {project_name}")
+
+        # Initialize the project
+        init.init_project(
+            project_name=project_name,
+            description=description,
+            python_version=python_version,
+            port=port,
+        )
+
+    except FileExistsError as e:
+        logger.error(str(e))
+        sys.exit(1)
+    except Exception as e:
+        logger.error(f"Initialization failed: {e}")
         sys.exit(1)
 
 
